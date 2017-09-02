@@ -32,8 +32,8 @@ class SecurityInfo:
     def __init__(self, name, start, end):
         self.name = name
         try:
-            dt.datetime.strptime(start, '%Y-%m-%d')
-            dt.datetime.strptime(end, '%Y-%m-%d')
+            dt.datetime.strptime(start, '%Y%m%d')
+            dt.datetime.strptime(end, '%Y%m%d')
             self.start = start
             self.end = end
         except ValueError:
@@ -84,7 +84,13 @@ def get_data(security):
     start = security.get_start()
     end = security.get_end()
     try:
-        raw_df = web.DataReader(name, 'yahoo', start, end)
+        import pandas as pd
+        import io
+        import yahoo_quote_download.yqd as yqd
+        #raw_df = web.DataReader(name, 'yahoo', start, end)
+        raw_df = pd.DataFrame.from_csv(io.StringIO(yqd.load_yahoo_quote(name, start, end)))
+        raw_df.to_csv('%s.csv' % name)
+        sys.exit()
     except Exception as e:
         print(e)
         sys.exit(1)
@@ -528,7 +534,7 @@ def show_rand_walks(all_walks, security):
 
 
 def main():
-    security = SecurityInfo(name="ORBK", start="2000-03-10", end="2003-03-10")
+    security = SecurityInfo(name="ORBK", start="20000310", end="20030310")
     markov_df = get_data(security)
 
     matrix = percent_change_prob_3x3(markov_df, security, lower_thresh=-1, upper_thresh=1)
